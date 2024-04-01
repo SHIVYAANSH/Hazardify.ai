@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Hazardify.ai</title>
+    <link rel="icon" href="favicon (2).png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        :root {
+            --main-bg-color: #f0f0f0;
+            --main-text-color: #333;
+            --secondary-color: #007bff;
+            --secondary-text-color: white;
+        }
+
+        [data-theme="dark"] {
+            --main-bg-color: #121212;
+            --main-text-color: #e0e0e0;
+            --secondary-color: #0056b3;
+            --secondary-text-color: #b0b0b0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--main-bg-color);
+            color: var(--main-text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            font-family: cursive;
+            font-size: 2rem;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+        }
+
+        .center-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: var(--secondary-text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: background-color 0.3s;
+        }
+
+        .center-button:hover {
+            background-color: cornflowerblue;
+            opacity: 0.8;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--secondary-color);
+            transition: color 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>
+        <a href="index.html" style="color: inherit; text-decoration: none;">
+            Hazardify.ai
+        </a>
+    </h1>
+
+    <a href="index.html" class="center-button">Use Our Tool</a>
+
+    <i class="fas fa-moon theme-toggle" onclick="toggleTheme()"></i>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggleIcon = document.querySelector('.theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeToggleIcon.classList.remove('fa-moon');
+                themeToggleIcon.classList.add('fa-sun');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeToggleIcon.classList.remove('fa-sun');
+                themeToggleIcon.classList.add('fa-moon');
+            }
+        }
+
+        document.querySelector('.theme-toggle').classList.toggle('fa-sun', document.body.getAttribute('data-theme') === 'dark');
+    </script>
+</body>
+</html>

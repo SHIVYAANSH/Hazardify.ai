@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hazardify.ai</title>
+    <link rel="icon" href="favicon (2).png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        /* Add your CSS here */
+        
+            :root {
+                --main-bg-color: #f0f0f0;
+                --main-text-color: #333;
+                --secondary-color: #007bff;
+                --secondary-text-color: white;
+            }
+    
+            [data-theme="dark"] {
+                --main-bg-color: #121212;
+                --main-text-color: #e0e0e0;
+                --secondary-color: #0056b3;
+                --secondary-text-color: #b0b0b0;
+            }
+            body {
+                font-family: 'Arial', sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                background-color: var(--main-bg-color);
+                color: var(--main-text-color);
+                transition: background-color 0.3s, color 0.3s;
+            }
+    
+            h1 {
+                color: #007bff;
+                font-family: cursive;
+                font-size: 2rem;
+                position: absolute;
+                left: 20px;
+                top: 20px;
+            }
+    
+            #file-upload-container {
+                margin-top: 1px;
+                border: 2px dashed #007bff;
+                border-radius: 8px;
+                padding: 20px;
+                width: 310px;
+                text-align: center;
+                background-color: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+    
+            #file-upload {
+                cursor:pointer;
+                padding: 9.9px;
+                padding-right:0.5px;
+                width: 100%;
+                margin-top: 5px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5.5px;
+            }
+    
+            #label-container {
+                cursor:none;
+                margin-left:10px;
+                margin-bottom: 1px;
+                width: 300px;
+                background-color: white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-radius: 8px;
+                text-align: left;
+            }
+    
+            #label-container div {
+                margin-top: 10px;
+                padding: 10px;
+                border-radius: 4px;
+                color: white;
+                margin-bottom:10px;
+            }
+    
+            button:hover, #file-upload:hover {
+                opacity: 0.79;
+                background-color:cornflowerblue;
+            }
+    
+            #ai, #h {
+                font-size: 4rem;
+                cursor:pointer;
+            }
+    
+            h2{
+                cursor:none;
+                font-size: 2rem;
+                font-family:cursive;
+                color:#007bff;
+                margin-top:60px;
+            }
+    
+            #image-preview {
+                margin-right:450px;
+                margin-left:100px;
+              
+                width: 250px;
+                height: auto;
+                display: none;
+                border: 2px dashed #007bff;
+            }
+    
+            #warning-message {
+                position: fixed;
+                left: 0;
+                bottom: 0;
+                margin-left:49px;
+                width: 90%;
+                background-color: #ffcc00;
+                color: #333;
+                padding: 10px 0;
+                text-align: center;
+                font-family: 'Arial', sans-serif;
+                box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+                z-index: 1000;
+                border-radius: 10px;
+            }
+    
+            .theme-toggle {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                cursor: pointer;
+                font-size: 24px;
+                color: var(--secondary-color);
+                transition: color 0.3s;
+            }
+    
+            #upload-and-label-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+            }
+    
+            #label1 {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                margin: 0;
+            }
+         
+        </style>
+
+</head>
+<body>
+
+    <h1>
+        <a href="index.html" style="color: #007bff; text-decoration: none;">
+            Hazardify.ai
+        </a>
+    </h1>
+    <i class="fas fa-moon theme-toggle" onclick="toggleTheme()"></i>
+    
+    <h2>Predict Image</h2>
+    
+    <div id="upload-and-label-container">
+        <div id="file-upload-container">
+            <input type="file" id="file-upload" accept="image/*"/>
+            <label for="file-upload" class="custom-file-upload">Choose file</label>
+            <button id="preview-button">Preview Image</button>
+        </div>
+        <div id="label1">
+            <div id="label-container"></div>
+        </div>
+    </div>
+    <img id="image-preview" src="#" alt="Image Preview">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script>
+        const URL = "https://teachablemachine.withgoogle.com/models/UpvnJsG-F/";
+
+        let model, labelContainer, maxPredictions;
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                const div = document.createElement("div");
+                div.style.backgroundColor = getRandomColor();
+                labelContainer.appendChild(div);
+            }
+        }
+
+        async function predict(file) {
+            const image = new Image();
+            const reader = new FileReader();
+            
+            reader.onload = async (e) => {
+                image.src = e.target.result;
+                image.onload = async () => {
+                    const prediction = await model.predict(image);
+                    for (let i = 0; i < maxPredictions; i++) {
+                        const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                        labelContainer.childNodes[i].innerHTML = classPrediction;
+                    }
+                };
+
+                const previewButton = document.getElementById('preview-button');
+                previewButton.style.display = 'inline';
+                previewButton.onclick = function() {
+                    const newWindow = window.open("", "_blank");
+                    newWindow.document.write("<img src='" + e.target.result + "' style='max-width: 100%;'>");
+                };
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            init();
+            document.getElementById('file-upload').addEventListener('change', (event) => {
+                if (event.target.files.length > 0) {
+                    const file = event.target.files[0];
+                    predict(file);
+                }
+            });
+        });
+
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggleIcon = document.querySelector('.theme-toggle');
+            const currentTheme = body.getAttribute('data-theme');
+
+            if (currentTheme === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                themeToggleIcon.classList.remove('fa-moon');
+                themeToggleIcon.classList.add('fa-sun');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeToggleIcon.classList.remove('fa-sun');
+                themeToggleIcon.classList.add('fa-moon');
+            }
+        }
+    </script>
+
+    <div id="warning-message">
+        Please note: While we strive for accuracy, this tool may not always provide correct results.<br> 
+        Use it as a guide rather than a definitive answer.
+    </div>
+
+</body>
+</html>
